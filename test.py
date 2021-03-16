@@ -1,21 +1,29 @@
 # coding=utf_8
 from evernote.api.client import EvernoteClient
 import calendar
+import configparser
 import datetime as dt
+import errno
 import evernote.edam.type.ttypes as Types
 import locale
+import os
 import textwrap
 
+# configparserの宣言とiniファイルの読み込み
+config_ini = configparser.ConfigParser()
+config_ini_path = 'config.ini'
+if not os.path.exists(config_ini_path):
+	raise FileNotFoundError(errno.ENOET, os.strerror(error.ENOENT), config_ini_path)
+config_ini.read(config_ini_path, encoding='utf-8')
+
+# config.iniから値取得
+NOTEBOOK_NAME = config_ini['evernote']['Notebook_name']
+DEV_TOKEN = config_ini['evernote']['Dev_token']
+SANDBOX = config_ini['evernote']['Sandbox']
+
 ## 変数の定義
-# notebook名
-NOTEBOOK_NAME = "test notebook"
 NOTEBOOK_GUID = ""
-
-# token
-dev_token = "put your token"
-
 # 日付と曜日
-#locale.setlocale(locale.LC_TIME, 'ja_JP.UTF-8')
 date = dt.date.today()
 date_1 = date + dt.timedelta(days=1)
 date_2 = date + dt.timedelta(days=2)
@@ -57,12 +65,21 @@ def makeNote(authToken, noteStore, noteTitle, noteBody, parentNotebook=None):
     ## Return created note object
     return note
 
+# noteを作成するnotebookのGUIDを取得する
+def getNotebook(noteStore):
+  notebooks = noteStore.listNotebooks()
+  for notebook in notebooks:
+    print "Notebook: ", notebook.name
+    print "NOTEBOOK_NAME: ", NOTEBOOK_NAME
+    if notebook.name.decode('utf-8') == NOTEBOOK_NAME:
+      return notebook
+
 # Set up the NoteStore client
-client = EvernoteClient(token=dev_token)
-userStore = client.get_user_store()
+client = EvernoteClient(token=DEV_TOKEN, sandbox=SANDBOX)
 noteStore = client.get_note_store()
 
-# Make API calls
+# debug
+userStore = client.get_user_store()
 user = userStore.getUser()
 print user.username
 
@@ -110,40 +127,11 @@ wdate=date.strftime('%a'),wdate_1=date_1.strftime('%a'),wdate_2=date_2.strftime(
 wdate_3=date_3.strftime('%a'),wdate_4=date_4.strftime('%a'),wdate_5=date_5.strftime('%a'),\
 wdate_6=date_6.strftime('%a')).strip()
 
-print body
 
-# noteを作成するnotebookのGUIDを取得する
-notebooks = noteStore.listNotebooks()
-for notebook in notebooks:
-	print "Notebook: ", notebook.name
-	if notebook.name == NOTEBOOK_NAME:
-		makeNote(dev_token, noteStore, date.strftime("%Y/%m/%d"), body, notebook)
-
-"""
-		NOTEBOOK_GUID = notebook.guid
-# notebookが存在しない場合、作成する
-if NOTEBOOK_GUID == "":
-	notebook = Types.Notebook()
-	notebook.name = NOTEBOOK_NAME
-	notebook = noteStore.createNotebook(notebook)
-	NOTEBOOK_GUID = notebook.guid
-"""
-
-print(date.strftime("%Y/%m/%d"), date.strftime('%a'))
-print(date_1.strftime("%Y/%m/%d"), date_1.strftime('%a'))
-print(date_2.strftime("%Y/%m/%d"), date_2.strftime('%a'))
-print(date_3.strftime("%Y/%m/%d"), date_3.strftime('%a'))
-print(date_4.strftime("%Y/%m/%d"), date_4.strftime('%a'))
-print(date_5.strftime("%Y/%m/%d"), date_5.strftime('%a'))
-print(date_6.strftime("%Y/%m/%d"), date_6.strftime('%a'))
-
-"""
-note = Types.Note()
-note.title = date.strftime("%Y/%m/%d")
-note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
-note.content += '<en-note>Hello, world!</en-note>'
-note.notebookGuid = NOTEBOOK_GUID
-note = noteStore.createNote(note)
-"""
-
+# noteの作成
+notebook = getNotebook(noteStore)
+if notebook:
+	makeNote(DEV_TOKEN, noteStore, date.strftime("%Y/%m/%d"), body, notebook)
+else:
+	makeNote(DEV_TOKEN, noteStore, date.strftime("%Y/%m/%d"), body)
 
