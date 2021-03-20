@@ -65,8 +65,8 @@ def makeNote(authToken, noteStore, noteTitle, noteBody, parentNotebook=None):
     ## Return created note object
     return note
 
-# noteを作成するnotebookのGUIDを取得する
-def getNotebook(noteStore):
+# notebookを作成する関数の定義
+def getNoteBook(noteStore):
   notebooks = noteStore.listNotebooks()
   for notebook in notebooks:
     print "Notebook: ", notebook.name
@@ -86,9 +86,9 @@ print user.username
 # note本文の作成
 body = textwrap.dedent('''
 <h2>{date}週の目標</h2>
-<en-todo checked="false"/>筋トレ
+<en-todo checked="false"/>study
 <br/>
-<en-todo checked="false"/>note
+<en-todo checked="false"/>fitness
 <br/>
 
 <div>{date}({wdate})</div>
@@ -106,19 +106,6 @@ body = textwrap.dedent('''
 <div>{date_6}({wdate_6})</div>
 <br/>
 <h2>備忘録：</h2>
-　note投稿(ipad, サウナ, ボート, catan, toeic, ビジネス系, news、ウイスキー、腸の話、大阪時代の話、データ分析結果)
-<br/>
-　pythonでfx自動取引実装のudemyを進める（スケジュール感再確認する） stay
-<br/>
-　仮説をたてる（noteでも英語でもpythonでもなにか） stay..
-<br/>
-　射精を5日に1回にする 
-<br/>
-　ジム いく
-<br/>
-　ビジネス勉強
-<br/>
-　画面共有アプリ
 ''').format(date=date.strftime("%Y/%m/%d"),\
 date_1=date_1.strftime("%Y/%m/%d"),date_2=date_2.strftime("%Y/%m/%d"),\
 date_3=date_3.strftime("%Y/%m/%d"),date_4=date_4.strftime("%Y/%m/%d"),\
@@ -129,7 +116,7 @@ wdate_6=date_6.strftime('%a')).strip()
 
 
 # noteの作成
-notebook = getNotebook(noteStore)
+notebook = getNoteBook(noteStore)
 if notebook:
 	makeNote(DEV_TOKEN, noteStore, date.strftime("%Y/%m/%d"), body, notebook)
 else:
